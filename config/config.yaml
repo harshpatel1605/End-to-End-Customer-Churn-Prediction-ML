@@ -26,4 +26,4 @@ model_evaluation:
   tuned_model_path: artifacts/model_training/tuned_model.pkl
   scores_file_path: artifacts/model_evaluation/scores.json
   base_cm_path: artifacts/model_evaluation/XGBoost.png
-  tuned_cm_path: artifacts/model_evaluation/XGBoost_Tuned. 
+  tuned_cm_path: artifacts/model_evaluation/XGBoost_Tuned.png 

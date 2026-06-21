@@ -127,8 +127,8 @@ class ModelEvaluation:
             "XGBoost_Tuned", self.config.tuned_cm_path, y_test, tuned_pred
         )
 
-        # self.log_to_mlflow("XGBoost_Eval", base_model, base_metrics, base_cm_path)
-        # self.log_to_mlflow("XGBoost_Tuned_Eval", tuned_model, tuned_metrics, tuned_cm_path)
+        self.log_to_mlflow("XGBoost_Eval", base_model, base_metrics, base_cm_path)
+        self.log_to_mlflow("XGBoost_Tuned_Eval", tuned_model, tuned_metrics, tuned_cm_path)
 
         scores = {
             "base_model": base_metrics,
