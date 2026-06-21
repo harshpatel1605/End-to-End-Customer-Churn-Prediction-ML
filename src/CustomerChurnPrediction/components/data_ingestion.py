@@ -1,0 +1,74 @@
+import os
+import sys
+import pandas as pd
+from dotenv import load_dotenv
+from sqlalchemy import create_engine
+from CustomerChurnPrediction.utils.logger import logger
+from CustomerChurnPrediction.utils.exception import CustomException
+from CustomerChurnPrediction.entity.config_entity import DataIngestionConfig
+from CustomerChurnPrediction.utils.common import create_directories
+from urllib.parse import quote_plus
+
+
+load_dotenv()
+
+
+class DataIngestion:
+    def __init__(self,config:DataIngestionConfig):
+        self.config = config
+
+
+    def read_sql_data(self, database_name: str, table_name: str) -> pd.DataFrame:
+
+        """
+        Connect to a MySQL database and fetch all rows from the given table.
+
+        Database credentials (user, password, host, port) are read from
+        environment variables (DB_USER, DB_PASSWORD, DB_HOST, DB_PORT).
+        The password is URL-encoded to safely handle special characters
+        when building the SQLAlchemy connection string.
+
+        Args:
+            database_name (str): Name of the database to connect to.
+            table_name (str): Name of the table to query (all rows/columns
+                are fetched via SELECT *).
+
+        Returns:
+            pd.DataFrame: The fetched table data as a DataFrame.
+
+        Raises:
+            CustomException: If the connection or query fails for any reason.
+        """
+
+        try:
+            logger.info(f"Connecting to database: {database_name}")
+
+            user     = os.getenv("DB_USER")
+            password = quote_plus(os.getenv("DB_PASSWORD"))
+            host     = os.getenv("DB_HOST")
+            port     = os.getenv("DB_PORT")
+
+            connection_url = f"mysql+pymysql://{user}:{password}@{host}:{port}/{database_name}"
+            engine         = create_engine(connection_url)
+
+            df = pd.read_sql(f"SELECT * FROM {table_name}", engine)
+
+            logger.info(f"Data fetched successfully: {df.shape[0]} rows, {df.shape[1]} columns")
+
+            return df
+        except Exception as e:
+            raise CustomException(e, sys)
+
+    def save_raw_data(self):
+
+        '''
+        Fetch raw data from the configured database/table and save it to disk.
+        '''
+        
+        database_name = self.config.database_info.database_name
+        table_name = self.config.database_info.table_name
+        df = self.read_sql_data(database_name,table_name)
+
+        create_directories([os.path.dirname(self.config.raw_data_path)]) 
+
+        df.to_csv(self.config.raw_data_path,index  = False)
