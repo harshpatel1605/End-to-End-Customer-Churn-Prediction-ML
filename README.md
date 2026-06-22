@@ -1,169 +1,197 @@
-# End-to-End Customer Churn Prediction
-🔗 [Download Kidney Disease Dataset](https://www.kaggle.com/datasets/blastchar/telco-customer-churn)
+# 📉 Customer Churn Prediction: End-to-End ML System
 
-## Workflows
+An end-to-end **machine learning system** that predicts the likelihood of customer churn using real-world telecom data. Designed for scalability, interpretability, and real-time usage — suitable for both demos and production environments.
 
-1. Update config.yaml
-2. Update the entity
-3. Update the configuration manager in src config
-4. Update the components
-5. Update the pipeline 
-6. Update the main.py
-7. Update the dvc.yaml
-8. app.py
+Built with **FastAPI, Docker, DVC, MLflow**, and deployed on **AWS EC2 with ECR**, following best practices in MLOps and ML engineering.
 
-# How to run?
-### STEPS:
+---
 
-Clone the repository
+## 🚀 Project Highlights
 
+- 🔍 **Churn Prediction**: Real-time risk prediction using customer account inputs.
+- 🧠 **ML Models**: XGBoost (base + Optuna-tuned) with threshold optimization for recall.
+- 🧪 **MLOps Integration**: Full lifecycle tracking via MLflow, hyperparameter tuning with Optuna.
+- 🧱 **Modular ML Pipelines**: Clean, reusable code structure for ingestion, transformation, training, and evaluation.
+- ⚡ **REST API**: FastAPI-powered backend for quick inference.
+- 📦 **Dockerized Deployment**: Easy containerization for local or cloud use.
+- 🔁 **CI/CD Pipeline**: Automated build and deployment via GitHub Actions + AWS ECR + EC2.
+- 📊 **Data Versioning**: Full pipeline reproducibility using DVC.
+
+---
+
+## 📊 Dataset Overview
+
+- **Source**: [Telco Customer Churn Dataset](https://www.kaggle.com/datasets/blastchar/telco-customer-churn)
+- **Target Variable**: `Churn` (binary: Yes or No)
+- **Features Used**:
+  - Demographics: gender, senior citizen, partner, dependents
+  - Services: phone, internet, streaming, security, backup, tech support
+  - Billing: contract type, payment method, monthly charges, total charges
+  - Account: tenure, paperless billing
+
+---
+
+## 🔬 Data Preprocessing & Feature Engineering
+
+- Binary encoding for Yes/No and Male/Female columns
+- One-hot encoding for multi-category columns (contract, payment method, internet service, etc.)
+- Collapsing redundant dummy columns (`No internet service`, `No phone service`) into single flags
+- VIF-based multicollinearity check
+- Column alignment at inference to match training feature set exactly
+
+---
+
+## 🧠 Machine Learning Models
+
+| Model | Description |
+|---|---|
+| XGBoost Base | Default hyperparameters with class imbalance handling via `scale_pos_weight` |
+| XGBoost Tuned | Optuna-optimized across 30 trials, maximizing recall at threshold 0.25 |
+
+**Optimization**:
+- Hyperparameter tuning with **Optuna** (30 trials, recall-focused objective)
+- Custom decision threshold (0.25) to minimize false negatives
+- Experiment tracking with **MLflow**
+- Model versioning and artifact logging
+
+---
+
+## ⚙️ ML Pipeline Stages (DVC)
+
+| Stage | Description |
+|---|---|
+| `data_ingestion` | Loads raw data from source into `artifacts/` |
+| `data_transformation` | Encodes, cleans, and prepares features |
+| `model_training` | Trains base and tuned XGBoost models |
+| `model_evaluation` | Evaluates models, saves metrics and confusion matrices |
+
+Run the full pipeline with:
 ```bash
-https://github.com/harshpatel1605/End-to-End-Kidney-Disease-Classification-Deep-Learning-Project
-```
-### STEP 01- Create a conda environment after opening the repository
-
-```bash
-conda create -n cnncls python=3.8 -y
+dvc repro
 ```
 
-```bash
-conda activate cnncls
+---
+
+## ⚙️ API Endpoints (FastAPI)
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/` | GET | Serves the prediction form UI |
+| `/api/predict` | POST | Returns churn prediction and probability from input |
+
+---
+
+## 🖥️ Frontend
+
+- Single-page form for inputting customer details
+- Real-time prediction result shown on the same page (no redirect)
+- Displays churn label, probability percentage, and visual probability bar
+
+---
+
+## 🚢 Deployment
+
+- **Containerized** using Docker
+- **CI/CD** via GitHub Actions with three stages:
+  - `Continuous Integration` — lint and test
+  - `Continuous Delivery` — build and push Docker image to AWS ECR
+  - `Continuous Deployment` — pull and run latest image on AWS EC2 (self-hosted runner)
+- **Cloud**: AWS EC2 (self-hosted runner) + AWS ECR (container registry)
+
+---
+
+## 🛠 Tech Stack
+
+| Layer | Tools |
+|---|---|
+| **ML** | Scikit-learn, XGBoost, Optuna |
+| **Experiment Tracking** | MLflow |
+| **Data Versioning** | DVC |
+| **Backend** | Python, FastAPI, Uvicorn |
+| **Frontend** | HTML, CSS, JavaScript |
+| **Deployment** | Docker, AWS EC2, AWS ECR |
+| **CI/CD** | GitHub Actions |
+
+---
+
+## 📁 Project Structure
+
 ```
-
-
-### STEP 02- install the requirements
-```bash
-pip install -r requirements.txt
+customer-churn-prediction/
+├── .github/
+│   └── workflows/
+│       └── main.yaml                  # CI/CD pipeline
+├── artifacts/                         # DVC tracked outputs
+│   ├── data_ingestion/
+│   │   └── raw_data.csv
+│   ├── data_transformation/
+│   │   └── transformed_data.csv
+│   ├── model_training/
+│   │   ├── base_model.pkl
+│   │   ├── best_params.json
+│   │   └── tuned_model.pkl
+│   └── model_evaluation/
+│       ├── scores.json
+│       ├── XGBoost.png
+│       └── XGBoost_Tuned.png
+├── config/
+│   └── config.yaml                    # Central configuration
+├── model/
+│   └── tuned_model.pkl                # Model committed to GitHub
+├── notebooks/
+│   ├── 01_EDA.ipynb
+│   ├── 02_data_transformation.ipynb
+│   └── 03_model_training.ipynb
+├── src/
+│   └── CustomerChurnPrediction/
+│       ├── components/
+│       │   ├── data_ingestion.py
+│       │   ├── data_transformation.py
+│       │   ├── model_training.py
+│       │   └── model_evaluation.py
+│       ├── pipelines/
+│       │   ├── stage_01_data_ingestion.py
+│       │   ├── stage_02_data_transformation.py
+│       │   ├── stage_03_model_training.py
+│       │   ├── stage_04_model_evaluation.py
+│       │   └── prediction_pipeline.py
+│       ├── config/
+│       │   └── configuration.py
+│       ├── entity/
+│       │   └── config_entity.py
+│       ├── constants/
+│       │   └── __init__.py
+│       └── utils/
+│           ├── common.py
+│           ├── logger.py
+│           └── exception.py
+├── templates/
+│   └── index.html                     # Frontend UI
+├── app.py                             # FastAPI application
+├── main.py                            # Runs full training pipeline
+├── dvc.yaml                           # DVC pipeline definition
+├── dvc.lock                           # DVC lock file
+├── Dockerfile                         # Container definition
+├── requirements.txt
+├── setup.py
+└── README.md
 ```
+---
 
-```bash
-# Finally run the following command
-python app.py
-```
+## 🤝 Contributing
 
-Now,
-```bash
-open up you local host and port
-```
+Contributions are welcome! If you'd like to improve the project — new models, UI improvements, or backend optimization — feel free to open a pull request or create an issue.
 
+---
 
+## 📬 Contact
 
-## MLflow
+- **Email**: your.email@gmail.com
+- **LinkedIn**: [yourname](https://linkedin.com/in/yourname)
+- **GitHub**: [yourname](https://github.com/yourname)
 
-- [Documentation](https://mlflow.org/docs/latest/index.html)
+---
 
+## 📎 License
 
-##### cmd
-- mlflow ui
-
-### dagshub
-[dagshub](https://dagshub.com/)
-
-MLFLOW_TRACKING_URI=https://dagshub.com/harshpatel16052005/End-to-End-Kidney-Disease-Classification-Deep-Learning-Project.mlflow
-
-
-### DVC cmd
-
-1. dvc init
-2. dvc repro
-3. dvc dag
-
-
-## About MLflow & DVC
-
-MLflow
-
- - Its Production Grade
- - Trace all of your expriements
- - Logging & taging your model
-
-
-DVC 
-
- - Its very lite weight for POC only
- - lite weight expriements tracker
- - It can perform Orchestration (Creating Pipelines)
-
-
-
-# AWS-CICD-Deployment-with-Github-Actions
-
-## 1. Login to AWS console.
-
-## 2. Create IAM user for deployment
-
-	#with specific access
-
-	1. EC2 access : It is virtual machine
-
-	2. ECR: Elastic Container registry to save your docker image in aws
-
-
-	#Description: About the deployment
-
-	1. Build docker image of the source code
-
-	2. Push your docker image to ECR
-
-	3. Launch Your EC2 
-
-	4. Pull Your image from ECR in EC2
-
-	5. Lauch your docker image in EC2
-
-	#Policy:
-
-	1. AmazonEC2ContainerRegistryFullAccess
-
-	2. AmazonEC2FullAccess
-
-	
-## 3. Create ECR repo to store/save docker image
-    - Save the URI: 108726526459.dkr.ecr.us-east-1.amazonaws.com/kidney
-
-	
-## 4. Create EC2 machine (Ubuntu) 
-
-## 5. Open EC2 and Install docker in EC2 Machine:
-	
-	
-	#optinal
-
-	sudo apt-get update -y
-
-	sudo apt-get upgrade
-	
-	#required
-
-	curl -fsSL https://get.docker.com -o get-docker.sh
-
-	sudo sh get-docker.sh
-
-	sudo usermod -aG docker ubuntu
-
-	newgrp docker
-	
-# 6. Configure EC2 as self-hosted runner:
-    setting>actions>runner>new self hosted runner> choose os> then run command one by one
-
-
-# 7. Setup github secrets:
-
-    AWS_ACCESS_KEY_ID=
-
-    AWS_SECRET_ACCESS_KEY=
-
-    AWS_REGION = us-east-1
-
-    AWS_ECR_LOGIN_URI = demo>>  566373416292.dkr.ecr.ap-south-1.amazonaws.com
-
-    ECR_REPOSITORY_NAME = simple-app
-
-
-
-
-
-
-
-
-
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
