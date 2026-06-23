@@ -14,10 +14,8 @@ class PredictionPipeline:
     MODEL_PATH = "model/tuned_model.pkl"
 
     def __init__(self):
-        config = read_yaml(CONFIG_FILE_PATH)
-        model_path = config.model_training.tuned_model_path
         logger.info("Loading tuned model...")
-        self.model = joblib.load(model_path)
+        self.model = joblib.load(MODEL_PATH)
         logger.info("Model loaded successfully.")
 
 
